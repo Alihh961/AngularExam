@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {IMock} from "./Interface";
+import {MockService} from "./mock.service";
 
 
 @Component({
@@ -17,9 +18,20 @@ export class AppComponent implements OnInit {
   transactions: IMock[] | null = null;
   a: string[] = ["a", "b", "c"];
 
+  constructor(private mockService: MockService) {
+  }
 
   ngOnInit() {
     this.formInit();
+    this.setMock();
+  }
+
+  setMock() {
+    this.mockService.mock$.subscribe(
+      r => {
+        this.transactions = r;
+      }
+    )
   }
 
   formInit() {
@@ -39,18 +51,6 @@ export class AppComponent implements OnInit {
     })
   }
 
-//   if (this.form.get("debit")) {
-//   if (this.available > this.form.get("amount")?.value && (this.available - this.form.get("amount")?.value) > 0) {
-//   if (this.transactions !== null) {
-//   this.transactions.push(this.form.value);
-// } else {
-//   this.transactions = [this.form.value];
-// }
-// }
-// } else {
-//   window.alert("No enough credits!");
-// }
-
   calculateDate() {
     const date = new Date();
     const month = date.getMonth() + 1;
@@ -66,11 +66,9 @@ export class AppComponent implements OnInit {
         case "debit":
           if (this.available >= this.form.get("amount")?.value && (this.available - this.form.get("amount")?.value) >= 0) {
             this.available -= this.form.get("amount")?.value;
-            if (this.transactions !== null) {
-              this.transactions.push(this.form.value);
-            } else {
-              this.transactions = [this.form.value];
-            }
+
+            this.mockService.setMock(this.form.value);
+
           } else {
             window.alert("No Enough credits");
           }
@@ -79,11 +77,9 @@ export class AppComponent implements OnInit {
         case "credit":
           this.available += this.form.get("amount")?.value;
 
-          if (this.transactions !== null) {
-            this.transactions.push(this.form.value);
-          } else {
-            this.transactions = [this.form.value];
-          }
+
+          this.mockService.setMock(this.form.value);
+
           break;
       }
     } else {
@@ -91,7 +87,4 @@ export class AppComponent implements OnInit {
     }
   }
 
-  show() {
-    console.log(this.transactions);
-  }
 }
